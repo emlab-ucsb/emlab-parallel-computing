@@ -44,22 +44,22 @@ list(
     name = results_parallel,
     command = long_function_parallel(values_to_run,
                                      number_of_workers = num_workers)
-  ),
-  # Let's run long_function sequentially again, using values_to_run
-  tar_target(
-    name = results_sequential_2,
-    command = long_function_sequential(values_to_run)
-  ),
-  # Run ML model, with cross-validation being done sequentially
-  tar_target(
-    name = ml_results_sequential,
-    command = run_ml_models(penguins,
-                            number_of_workers = 1)
-  ),
-  # Run ML model, with cross-validation being done in parallel
-  tar_target(
-    name = ml_results_parallel,
-    command = run_ml_models(penguins,
-                            number_of_workers = num_workers)
-  )
+  )#,
+  # # Let's run long_function sequentially again, using values_to_run
+  # tar_target(
+  #   name = results_sequential_2,
+  #   command = long_function_sequential(values_to_run)
+  # )#,
+  # # Run ML model, with cross-validation being done sequentially
+  # tar_target(
+  #   name = ml_results_sequential,
+  #   command = run_ml_models(penguins,
+  #                           number_of_workers = 1)
+  # ),
+  # # Run ML model, with cross-validation being done in parallel
+  # tar_target(
+  #   name = ml_results_parallel,
+  #   command = run_ml_models(penguins,
+  #                           number_of_workers = num_workers)
+  # )
 )
