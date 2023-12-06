@@ -64,7 +64,7 @@ run_ml_models <- function(dataset,
   
   # Create a random forest model specification
   rf_spec <- 
-    parsnip::rand_forest(trees = 1000,
+    parsnip::rand_forest(trees = 500,
                          mtry = tune::tune(),
                          min_n = tune::tune()) |>
     parsnip::set_engine("ranger", 
@@ -86,19 +86,19 @@ run_ml_models <- function(dataset,
   
   # Initialize workers for parallel processing
 
-  doFuture::registerDoFuture()
+  if(number_of_workers > 1) doFuture::registerDoFuture()
   
-  future::plan(future::multisession, 
+  if(number_of_workers > 1) future::plan(future::multisession, 
                workers = number_of_workers)
   
   # Run cross-validation using our CV splits
-  # Over a grid size of 10 hyperparameter combinations
+  # Over a grid size of 20 hyperparameter combinations
   cv_results <-
     workflow |>
     tune::tune_grid(
       resamples = train_cv_splits,
       metrics = performance_metrics,
-      grid = 25,
+      grid = 20,
       control = tune::control_grid(verbose = TRUE,
                                    allow_par = TRUE,
                                    parallel_over = "resamples"))
@@ -107,8 +107,8 @@ run_ml_models <- function(dataset,
   best_hyperparameters <- cv_results |>
     tune::select_best("rsq")
   
-  # Close the workers
-  future::plan(future::sequential)
+  # Close the workers, if necessary
+  if(number_of_workers > 1) future::plan(future::sequential)
   
   # Fit the model on the training dataset
   # Using optimized hyperparameter set
