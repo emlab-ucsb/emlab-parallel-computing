@@ -84,12 +84,12 @@ run_ml_models <- function(dataset,
   # Specify performance metric for tuning hyperparaemetrs
   performance_metrics <- yardstick::metric_set(yardstick::rsq)
   
-  # Initialize workers for parallel processing
-
-  doFuture::registerDoFuture()
+  # Initialize workers for parallel processing, if number_of_workers >1
   
-  future::plan(future::multisession, 
-               workers = number_of_workers)
+  if(number_of_workers > 1) doFuture::registerDoFuture()
+  
+  if(number_of_workers > 1) future::plan(future::multisession, 
+                                         workers = number_of_workers)
   
   # Run cross-validation using our CV splits
   # Over a grid size of 10 hyperparameter combinations
@@ -107,8 +107,8 @@ run_ml_models <- function(dataset,
   best_hyperparameters <- cv_results |>
     tune::select_best("rsq")
   
-  # Close the workers
-  future::plan(future::sequential)
+  # Close the workers, as necessary if number_of_workers > 1
+  if(number_of_workers > 1) future::plan(future::sequential)
   
   # Fit the model on the training dataset
   # Using optimized hyperparameter set
