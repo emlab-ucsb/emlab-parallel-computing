@@ -9,6 +9,11 @@ long_function <- function(how_many_seconds){
   
 }
 
+# Let's test the function and time it
+# tictoc::tic()
+# long_function(1)
+# tictoc::toc()
+
 # Create a wrapper for long_function that runs sequentially over a vector of seconds
 long_function_sequential <- function(how_many_seconds_vector){
   
@@ -17,6 +22,11 @@ long_function_sequential <- function(how_many_seconds_vector){
   
 }
 
+# Let's test the function and time it
+# tictoc::tic()
+# long_function_sequential(rep(1,10))
+# tictoc::toc()
+
 # Create a wrapper for long_function that runs in parallel over a vector of seconds
 # The number of cores is set by the user
 long_function_parallel <- function(how_many_seconds_vector,
@@ -24,8 +34,10 @@ long_function_parallel <- function(how_many_seconds_vector,
   
   # Initialize workers for parallel processing
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
-  future::plan(future::cluster,
-               workers = parallel::makeForkCluster(number_of_workers))
+  # future::plan(future::cluster,
+  #              workers = parallel::makeForkCluster(number_of_workers))
+  future::plan(future::multisession,
+               workers = number_of_workers)
   
   # Run the function in parallel
   result <- how_many_seconds_vector |>
@@ -38,6 +50,11 @@ long_function_parallel <- function(how_many_seconds_vector,
   result
   
 }
+
+# Let's test the function and time it
+# tictoc::tic()
+# long_function_parallel(rep(1,10), number_of_workers = 10)
+# tictoc::toc()
 
 # Create a function to train and test machine learning model
 # This will use the penguins dataset to build a model that predicts penguin body weight
@@ -53,7 +70,7 @@ run_ml_models <- function(dataset,
   test <- rsample::testing(split)
   
   # Create splits from training data using 10-fold cross-validation
-  train_cv_splits <- rsample::vfold_cv(train, v = 5)
+  train_cv_splits <- rsample::vfold_cv(train, v = 10)
   
   # Create a data preprocessing recipe
   # Predict body_mass_g using everything else
@@ -90,8 +107,9 @@ run_ml_models <- function(dataset,
   if(number_of_workers > 1) doFuture::registerDoFuture()
   # Initialize workers for parallel processing
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
-  if(number_of_workers > 1) future::plan(future::cluster,
-                 workers = parallel::makeForkCluster(number_of_workers))
+  if(number_of_workers > 1) future::plan(future::multisession,
+                                         workers = number_of_workers)#future::plan(future::cluster,
+                 #workers = parallel::makeForkCluster(number_of_workers))
   
   # Run cross-validation using our CV splits
   # Over a grid size of 20 hyperparameter combinations
@@ -100,7 +118,7 @@ run_ml_models <- function(dataset,
     tune::tune_grid(
       resamples = train_cv_splits,
       metrics = performance_metrics,
-      grid = 25,
+      grid = 20,
       control = tune::control_grid(verbose = TRUE,
                                    allow_par = TRUE,
                                    parallel_over = "resamples"))
@@ -134,3 +152,13 @@ run_ml_models <- function(dataset,
   model_performance
   
 }
+
+# Let's test the function and time it - first running cross-validation sequentially
+# tictoc::tic()
+# run_ml_models(penguins, number_of_workers = 1)
+# tictoc::toc()
+
+# Let's test the function and time it - now running cross-validation in parallel
+# tictoc::tic()
+# run_ml_models(penguins, number_of_workers = 10)
+# tictoc::toc()
