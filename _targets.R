@@ -7,12 +7,11 @@ library(targets)
 data(penguins, package = "modeldata")
 
 # Set number of works to use for parallel processing
-# If doing this on your personal machine, you can use something like this,
-# which will use all cores except 1:
-num_workers <- future::availableCores(omit = 1)
+# If doing this on your personal machine, you can use something like this:
+#num_workers <- future::availableCores()
 
 # If using the emLab server, you can use something like this:
-#num_workers <- 10
+num_workers <- 10
 
 # Set target options:
 tar_option_set(
@@ -40,7 +39,7 @@ list(
     name = results_sequential,
     command = long_function_sequential(values_to_run)
   ),
-  # # Now let's run long_function in parallel, using values_to_run
+  # Now let's run long_function in parallel, using values_to_run
   tar_target(
     name = results_parallel,
     command = long_function_parallel(values_to_run,
@@ -51,7 +50,7 @@ list(
     name = results_sequential_2,
     command = long_function_sequential(values_to_run)
   ),
-  # # Run ML model, with cross-validation being done sequentially
+  # Run ML model, with cross-validation being done sequentially
   tar_target(
     name = ml_results_sequential,
     command = run_ml_models(penguins,
@@ -62,5 +61,5 @@ list(
     name = ml_results_parallel,
     command = run_ml_models(penguins,
                             number_of_workers = num_workers)
-   )
+  )
 )
