@@ -227,5 +227,5 @@ run_ml_models_by_group <- function(dataset,
 # run_ml_models_by_group(penguins,
 #                        group_name = "species",
 #                        number_of_workers_for_groups = 1,
-#                        number_of_workers_for_cv = 10)    
+#                        number_of_workers_for_cv = 5)    
 # tictoc::toc()
