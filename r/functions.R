@@ -53,7 +53,7 @@ run_ml_models <- function(dataset,
   test <- rsample::testing(split)
   
   # Create splits from training data using 10-fold cross-validation
-  train_cv_splits <- rsample::vfold_cv(train, v = 10)
+  train_cv_splits <- rsample::vfold_cv(train, v = 5)
   
   # Create a data preprocessing recipe
   # Predict body_mass_g using everything else
@@ -100,7 +100,7 @@ run_ml_models <- function(dataset,
     tune::tune_grid(
       resamples = train_cv_splits,
       metrics = performance_metrics,
-      grid = 20,
+      grid = 25,
       control = tune::control_grid(verbose = TRUE,
                                    allow_par = TRUE,
                                    parallel_over = "resamples"))
