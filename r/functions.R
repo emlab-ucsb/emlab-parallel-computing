@@ -18,7 +18,9 @@ long_function <- function(how_many_seconds){
 long_function_sequential <- function(how_many_seconds_vector){
   
   how_many_seconds_vector |>
-    purrr::map_dfr(long_function)
+    purrr::map_dfr(long_function, 
+                   # Include a progress bar
+                   .progress = TRUE)
   
 }
 
