@@ -61,7 +61,11 @@ long_function_parallel <- function(how_many_seconds_vector,
 # Create a function to train and test machine learning model
 # This will use the penguins dataset to build a model that predicts penguin body weight
 run_ml_models <- function(dataset,
-                          number_of_workers_for_cv = 1){
+                          # Across how many parallel workers should we run cross-validation?
+                          number_of_workers_for_cv = 1,
+                          # Random forest can internally run in parallel
+                          # How many parallel workers should we use?
+                          number_of_workers_for_rf = 1){
   
   # Set random seed for consistency
   set.seed(101)
@@ -93,9 +97,7 @@ run_ml_models <- function(dataset,
                         importance = "none",
                         seed = 101,
                         # Random forest can internally run in parallel
-                        # But set this to 1, so that only parallel computation happens during CV
-                        # and we don't end up with nested parallelism
-                        num.threads = 1) |>
+                        num.threads = number_of_workers_for_rf) |>
     parsnip::set_mode("regression")
   
   # Create a workflow
@@ -106,7 +108,8 @@ run_ml_models <- function(dataset,
   # Specify performance metric for tuning hyperparaemetrs
   performance_metrics <- yardstick::metric_set(yardstick::rsq)
   
-  # Initialize workers for parallel processing
+  # Initialize workers for cross-validation parallel processing
+  # This will run each of our CV folds on a different worker
   # Need to register backend for tune::tune_grid to pick it up
   if(number_of_workers_for_cv > 1) doFuture::registerDoFuture()
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
@@ -115,7 +118,7 @@ run_ml_models <- function(dataset,
                                          workers = parallel::makeForkCluster(number_of_workers_for_cv))
   
   # Run cross-validation using our CV splits
-  # Over a grid size of 20 hyperparameter combinations
+  # Over a grid size of 10 hyperparameter combinations
   cv_results <-
     workflow |>
     tune::tune_grid(
@@ -124,7 +127,8 @@ run_ml_models <- function(dataset,
       grid = 10,
       control = tune::control_grid(verbose = TRUE,
                                    # Allow this to run in parallel if number_of_workers_for_cv > 1 
-                                   allow_par = number_of_workers_for_cv >1,
+                                   # Otherwise, don't run this in parallel
+                                   allow_par = number_of_workers_for_cv > 1,
                                    parallel_over = "resamples"))
   
   # Select best hyperparameter set
@@ -157,15 +161,25 @@ run_ml_models <- function(dataset,
   
 }
 
-# Let's test the function and time it - first running cross-validation sequentially
-# tictoc::tic()
-# run_ml_models(penguins, number_of_workers_for_cv = 1)
-# tictoc::toc()
+# Let's test the function and time it - first running RF sequentially and cross-validation sequentially 
+ # tictoc::tic()
+ # run_ml_models(penguins, 
+ #               number_of_workers_for_cv = 1,
+ #               number_of_workers_for_rf = 1)
+ # tictoc::toc()
+ 
+ # Let's test the function and time it - next running RF in parallel and cross-validation sequentially
+ # tictoc::tic()
+ # run_ml_models(penguins, 
+ #               number_of_workers_for_cv = 1,
+ #               number_of_workers_for_rf = 10)
+ # tictoc::toc()
 
-# Let's test the function and time it - now running cross-validation in parallel
-# tictoc::tic()
-# run_ml_models(penguins, number_of_workers_for_cv = 5)
-# tictoc::toc()
+# Let's test the function and time it - now running RF sequentially and cross-validation in parallel
+ # tictoc::tic()
+ # run_ml_models(penguins, number_of_workers_for_cv = 10,
+ #               number_of_workers_for_rf = 1)
+ # tictoc::toc()
 
 # Let's create a wrapper function that runs the ML function above by group
 run_ml_models_by_group <- function(dataset,
@@ -176,7 +190,10 @@ run_ml_models_by_group <- function(dataset,
                                    # I only include this for demonstration purposes
                                    # To maximize efficiencies and minimize overhead loss,
                                    # We typically want to parallelize the longest running operation (e.g., the outermost loop)
-                                   number_of_workers_for_cv = 1){
+                                   number_of_workers_for_cv = 1,
+                                   # Random forest can internally run in parallel
+                                   # How many parallel workers should we use?
+                                   number_of_workers_for_rf = 1){
   
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
   # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
@@ -184,6 +201,7 @@ run_ml_models_by_group <- function(dataset,
                                                 workers = parallel::makeForkCluster(number_of_workers_for_groups))
   
   # Take our dataset, group by group_name, then use that to nest so that each row corresponds to the data from each group
+  # This is a nice way to keep everything organized, and ensure model results correspond to group names
   # As an example to see what this looks like before building the models, you can try the following
   # penguins |> 
   #   dplyr::group_by(species) |> 
@@ -197,7 +215,8 @@ run_ml_models_by_group <- function(dataset,
     # Use furrr to run the run_ml_models function in parallel across each row (e.g., run it in parallel across groups)
     dplyr::mutate(model_performance_results = furrr::future_map(data, 
                                                       ~run_ml_models(.,
-                                                                      number_of_workers_for_cv = number_of_workers_for_cv),
+                                                                      number_of_workers_for_cv = number_of_workers_for_cv,
+                                                                      number_of_workers_for_rf = number_of_workers_for_rf),
                                                   # Set this option to ensure proper random seeds each time it's run, even in parallel
                                                   .options = furrr::furrr_options(seed = TRUE),
                                                   # Include progress bar
@@ -219,13 +238,39 @@ run_ml_models_by_group <- function(dataset,
 # run_ml_models_by_group(penguins,
 #                        group_name = "species",
 #                        number_of_workers_for_groups = 3,
-#                        number_of_workers_for_cv = 1)    
+#                        number_of_workers_for_cv = 1,
+#                        number_of_workers_for_rf = 1)
+# tictoc::toc()
+
+# Do parallelization over groups and random forest
+# This is a bit faster
+# tictoc::tic()
+# run_ml_models_by_group(penguins,
+#                        group_name = "species",
+#                        number_of_workers_for_groups = 3,
+#                        number_of_workers_for_cv = 1,
+#                        number_of_workers_for_rf = 10)
 # tictoc::toc()
 
 # Do parallelization over cross-validation - this takes longer
+# This is because we typically want to parallelize across the most outer loop possible
+# (e.g., the unit of analysis that will take the longest to run)
+# cross-validation is just part of the analysis, so it's less efficient to only parallelize this portion
+# it's more efficient to parallelize over groups, if we're doin gthat
+
 # tictoc::tic()
 # run_ml_models_by_group(penguins,
 #                        group_name = "species",
 #                        number_of_workers_for_groups = 1,
-#                        number_of_workers_for_cv = 5)    
+#                        number_of_workers_for_cv = 5,
+#                        number_of_workers_for_rf = 1)
+# tictoc::toc()
+
+# Do parallelization over cross-validation and random forest - this is a bit faster, but still slower than doing over groups and RF
+# tictoc::tic()
+# run_ml_models_by_group(penguins,
+#                        group_name = "species",
+#                        number_of_workers_for_groups = 1,
+#                        number_of_workers_for_cv = 5,
+#                        number_of_workers_for_rf = 10)
 # tictoc::toc()
