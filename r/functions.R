@@ -175,7 +175,9 @@ run_ml_models <- function(dataset,
  #               number_of_workers_for_rf = 10)
  # tictoc::toc()
 
-# Let's test the function and time it - now running RF sequentially and cross-validation in parallel
+ # Let's test the function and time it - now running RF sequentially and cross-validation in parallel
+ # This is much faster because cross-validation is the more outer loop than the internal random forest model, 
+ # and is the longest running operation
  # tictoc::tic()
  # run_ml_models(penguins, number_of_workers_for_cv = 10,
  #               number_of_workers_for_rf = 1)
