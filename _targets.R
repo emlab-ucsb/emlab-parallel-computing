@@ -32,7 +32,7 @@ list(
   # What values should we run in our arbitrary function, long_function?
   tar_target(
     name = values_to_run,
-    command = rep(1,10)
+    command = rep(2,5)
   ),
   # Let's run long_function sequentially, using values_to_run
   tar_target(
