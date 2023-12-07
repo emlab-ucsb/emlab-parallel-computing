@@ -23,8 +23,10 @@ long_function_parallel <- function(how_many_seconds_vector,
                                    number_of_workers = 1){
   
   # Initialize workers for parallel processing
-  future::plan(future::multisession,
-               workers = number_of_workers)
+  # Note the forking is fastest for parallel processing on Linux and Mac
+  # But doesn't work on windows
+  future::plan(future::cluster, 
+               workers = parallel::makeForkCluster(number_of_workers))
   
   # Run the function in parallel
   result <- how_many_seconds_vector |>
@@ -88,8 +90,10 @@ run_ml_models <- function(dataset,
   
   if(number_of_workers > 1) doFuture::registerDoFuture()
   
-  if(number_of_workers > 1) future::plan(future::multisession, 
-                                         workers = number_of_workers)
+  # Note the forking is fastest for parallel processing on Linux and Mac
+  # But doesn't work on windows
+  if(number_of_workers > 1)  future::plan(future::cluster, 
+                                           workers = parallel::makeForkCluster(number_of_workers))
   
   # Run cross-validation using our CV splits
   # Over a grid size of 10 hyperparameter combinations
@@ -103,12 +107,12 @@ run_ml_models <- function(dataset,
                                    allow_par = TRUE,
                                    parallel_over = "resamples"))
   
+  # Close the workers, as necessary if number_of_workers > 1
+  if(number_of_workers > 1) future::plan(future::sequential)
+  
   # Select best hyperparameter set
   best_hyperparameters <- cv_results |>
     tune::select_best("rsq")
-  
-  # Close the workers, as necessary if number_of_workers > 1
-  if(number_of_workers > 1) future::plan(future::sequential)
   
   # Fit the model on the training dataset
   # Using optimized hyperparameter set
