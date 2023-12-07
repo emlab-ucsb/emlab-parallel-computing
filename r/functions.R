@@ -34,10 +34,8 @@ long_function_parallel <- function(how_many_seconds_vector,
   
   # Initialize workers for parallel processing
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
-  # future::plan(future::cluster,
-  #              workers = parallel::makeForkCluster(number_of_workers))
-  future::plan(future::multisession,
-               workers = number_of_workers)
+   future::plan(future::cluster,
+                workers = parallel::makeForkCluster(number_of_workers))
   
   # Run the function in parallel
   result <- how_many_seconds_vector |>
@@ -51,7 +49,7 @@ long_function_parallel <- function(how_many_seconds_vector,
   
 }
 
-# Let's test the function and time it
+# # Let's test the function and time it
 # tictoc::tic()
 # long_function_parallel(rep(1,10), number_of_workers = 10)
 # tictoc::toc()
@@ -107,9 +105,8 @@ run_ml_models <- function(dataset,
   if(number_of_workers > 1) doFuture::registerDoFuture()
   # Initialize workers for parallel processing
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
-  if(number_of_workers > 1) future::plan(future::multisession,
-                                         workers = number_of_workers)#future::plan(future::cluster,
-                 #workers = parallel::makeForkCluster(number_of_workers))
+  if(number_of_workers > 1) future::plan(future::cluster,
+                 workers = parallel::makeForkCluster(number_of_workers))
   
   # Run cross-validation using our CV splits
   # Over a grid size of 20 hyperparameter combinations
