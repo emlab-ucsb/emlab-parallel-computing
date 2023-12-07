@@ -25,7 +25,7 @@ tar_option_set(
 )
 
 # Run the R scripts in the R/ folder with your custom functions:
-tar_source()
+tar_source("r/functions.R")
 
 # Here is our list of targets
 list(
