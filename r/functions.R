@@ -36,8 +36,9 @@ long_function_parallel <- function(how_many_seconds_vector,
   
   # Initialize workers for parallel processing
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
-   future::plan(future::cluster,
-                workers = parallel::makeForkCluster(number_of_workers))
+  # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
+  future::plan(future::cluster,
+               workers = parallel::makeForkCluster(number_of_workers))
   
   # Run the function in parallel
   result <- how_many_seconds_vector |>
@@ -108,8 +109,9 @@ run_ml_models <- function(dataset,
   # Need to register backend for tune::tune_grid to pick it up
   doFuture::registerDoFuture()
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
+  # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
   if(number_of_workers > 1) future::plan(future::cluster,
-                 workers = parallel::makeForkCluster(number_of_workers))
+                                         workers = parallel::makeForkCluster(number_of_workers))
   
   # Run cross-validation using our CV splits
   # Over a grid size of 20 hyperparameter combinations
