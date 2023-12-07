@@ -101,9 +101,6 @@ run_ml_models <- function(dataset,
   performance_metrics <- yardstick::metric_set(yardstick::rsq)
   
   # Initialize workers for parallel processing
-
-  if(number_of_workers > 1) doFuture::registerDoFuture()
-  # Initialize workers for parallel processing
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
   if(number_of_workers > 1) future::plan(future::cluster,
                  workers = parallel::makeForkCluster(number_of_workers))
