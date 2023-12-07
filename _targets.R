@@ -52,14 +52,22 @@ list(
   ),
   # Run ML model, with cross-validation being done sequentially
   tar_target(
-    name = ml_results_sequential,
+    name = ml_results_sequential_cv,
     command = run_ml_models(penguins,
                             number_of_workers = 1)
   ),
   # Run ML model, with cross-validation being done in parallel
   tar_target(
-    name = ml_results_parallel,
+    name = ml_results_parallel_cv,
     command = run_ml_models(penguins,
-                            number_of_workers = num_workers)
+                            number_of_workers_for_cv = num_workers)
+  ),
+  # Run ML model by species, where parallelization happens across species, and not within cross-validation
+  tar_target(
+    name = ml_results_parallel_by_group,
+    command = run_ml_models_by_group(penguins,
+                           group_name = "species",
+                           number_of_workers_for_groups = num_workers,
+                           number_of_workers_for_cv = 1)    
   )
 )
