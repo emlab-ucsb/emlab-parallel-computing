@@ -39,7 +39,9 @@ long_function_parallel <- function(how_many_seconds_vector,
   
   # Run the function in parallel
   result <- how_many_seconds_vector |>
-    furrr::future_map_dfr(long_function)
+    furrr::future_map_dfr(long_function, 
+                          # Include a progress bar
+                          .progress = TRUE)
   
   # Close the workers
   future::plan(future::sequential)
