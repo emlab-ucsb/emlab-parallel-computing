@@ -20,7 +20,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
   #
-  #   controller = crew::crew_controller_local(workers = num_workers)
+     # controller = crew::crew_controller_local(workers = num_workers)
   #
 )
 
@@ -39,35 +39,37 @@ list(
     name = results_sequential,
     command = long_function_sequential(values_to_run)
   ),
-  # Now let's run long_function in parallel, using values_to_run
-  tar_target(
-    name = results_parallel,
-    command = long_function_parallel(values_to_run,
-                                     number_of_workers = num_workers)
-  ),
   # Let's run long_function sequentially again, using values_to_run
   tar_target(
     name = results_sequential_2,
     command = long_function_sequential(values_to_run)
-  ),
-  # Run ML model, with cross-validation being done sequentially
-  tar_target(
-    name = ml_results_sequential_cv,
-    command = run_ml_models(penguins,
-                            number_of_workers = 1)
-  ),
-  # Run ML model, with cross-validation being done in parallel
-  tar_target(
-    name = ml_results_parallel_cv,
-    command = run_ml_models(penguins,
-                            number_of_workers_for_cv = num_workers)
-  ),
-  # Run ML model by species, where parallelization happens across species, and not within cross-validation
-  tar_target(
-    name = ml_results_parallel_by_group,
-    command = run_ml_models_by_group(penguins,
-                           group_name = "species",
-                           number_of_workers_for_groups = num_workers,
-                           number_of_workers_for_cv = 1)    
   )
+  # I include these other targets so you see how we could include them in the pipeline, if desired
+  # But for the demo, we will just focus on the above
+  # # Now let's run long_function in parallel, using values_to_run
+  # tar_target(
+  #   name = results_parallel,
+  #   command = long_function_parallel(values_to_run,
+  #                                    number_of_workers = num_workers)
+  # ),
+  # # Run ML model, with cross-validation being done sequentially
+  # tar_target(
+  #   name = ml_results_sequential_cv,
+  #   command = run_ml_models(penguins,
+  #                           number_of_workers = 1)
+  # ),
+  # # Run ML model, with cross-validation being done in parallel
+  # tar_target(
+  #   name = ml_results_parallel_cv,
+  #   command = run_ml_models(penguins,
+  #                           number_of_workers_for_cv = num_workers)
+  # ),
+  # # Run ML model by species, where parallelization happens across species, and not within cross-validation
+  # tar_target(
+  #   name = ml_results_parallel_by_group,
+  #   command = run_ml_models_by_group(penguins,
+  #                          group_name = "species",
+  #                          number_of_workers_for_groups = num_workers,
+  #                          number_of_workers_for_cv = 1)    
+  # )
 )
