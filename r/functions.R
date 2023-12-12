@@ -54,9 +54,9 @@ long_function_parallel <- function(how_many_seconds_vector,
 }
 
 # # Let's test the function and time it
-# tictoc::tic()
-# long_function_parallel(rep(2,5), number_of_workers = 5)
-# tictoc::toc()
+tictoc::tic()
+long_function_parallel(rep(2,5), number_of_workers = 5)
+tictoc::toc()
 
 # Create a function to train and test machine learning model
 # This will use the penguins dataset to build a model that predicts penguin body weight
@@ -163,14 +163,14 @@ run_ml_models <- function(dataset,
 
 # Let's test the function and time it - first running RF sequentially and cross-validation sequentially 
  # tictoc::tic()
- # run_ml_models(penguins, 
+ # run_ml_models(penguins,
  #               number_of_workers_for_cv = 1,
  #               number_of_workers_for_rf = 1)
  # tictoc::toc()
  
  # Let's test the function and time it - next running RF in parallel and cross-validation sequentially
  # tictoc::tic()
- # run_ml_models(penguins, 
+ # run_ml_models(penguins,
  #               number_of_workers_for_cv = 1,
  #               number_of_workers_for_rf = 10)
  # tictoc::toc()
@@ -179,7 +179,8 @@ run_ml_models <- function(dataset,
  # This is much faster because cross-validation is the more outer loop than the internal random forest model, 
  # and is the longest running operation
  # tictoc::tic()
- # run_ml_models(penguins, number_of_workers_for_cv = 10,
+ # run_ml_models(penguins, 
+ #               number_of_workers_for_cv = 10,
  #               number_of_workers_for_rf = 1)
  # tictoc::toc()
 
