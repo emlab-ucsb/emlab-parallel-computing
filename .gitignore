@@ -43,5 +43,6 @@ img/ppt_schematics.pptx
 .DS_Store
 
 _targets/*
+_targets
 .Rprofile
 _targets/meta/meta

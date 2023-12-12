@@ -43,11 +43,11 @@ list(
   tar_target(
     name = results_sequential_2,
     command = long_function_sequential(values_to_run)
-  ),
-  # # Now let's run long_function in parallel, using values_to_run
-  tar_target(
-    name = results_parallel,
-    command = long_function_parallel(values_to_run,
-                                     number_of_workers = num_workers)
-  )
+  )#,
+  # # # Now let's run long_function in parallel, using values_to_run
+  # tar_target(
+  #   name = results_parallel,
+  #   command = long_function_parallel(values_to_run,
+  #                                    number_of_workers = num_workers)
+  # )
 )
