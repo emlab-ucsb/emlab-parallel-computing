@@ -20,7 +20,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with 2 workers which will run as local R processes:
   #
-     # controller = crew::crew_controller_local(workers = num_workers)
+  #    controller = crew::crew_controller_local(workers = num_workers)
   #
 )
 

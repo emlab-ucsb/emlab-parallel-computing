@@ -54,9 +54,9 @@ long_function_parallel <- function(how_many_seconds_vector,
 }
 
 # # Let's test the function and time it
-tictoc::tic()
-long_function_parallel(rep(2,5), number_of_workers = 5)
-tictoc::toc()
+# tictoc::tic()
+# long_function_parallel(rep(2,5), number_of_workers = 5)
+# tictoc::toc()
 
 # Create a function to train and test machine learning model
 # This will use the penguins dataset to build a model that predicts penguin body weight
