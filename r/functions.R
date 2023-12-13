@@ -221,7 +221,7 @@ run_ml_models_by_group <- function(dataset,
                                                                       number_of_workers_for_cv = number_of_workers_for_cv,
                                                                       number_of_workers_for_rf = number_of_workers_for_rf),
                                                   # Set this option to ensure proper random seeds each time it's run, even in parallel
-                                                  .options = furrr::furrr_options(seed = TRUE),
+                                                  .options = furrr::furrr_options(seed = 101),
                                                   # Include progress bar
                                                   .progress = TRUE)) |>
     # We no longer need the data column
