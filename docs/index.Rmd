@@ -600,6 +600,6 @@ class: center, middle
 
 # Sample code
 
-For short examples of how to use these R packages for parallel computing, see [sample_code.Rmd](https://github.com/danielleferraro/rladies-sb-parallel/blob/main/sample_code/sample_code.Rmd)<br>
+For short examples of how to use these R packages for parallel computing, see [sample_code.Rmd](https://github.com/danielleferraro/rladies-sb-parallel/blob/main/sample_code/sample_code.md)<br>
 
 
