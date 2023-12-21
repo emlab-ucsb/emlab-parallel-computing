@@ -1,7 +1,4 @@
 ---
-title: "A Gentle Introduction to Parallel Computing for emLab"
-author: Danielle Ferraro and Gavin McDonald <br>`r knitr::include_graphics("img/emlab_logo_cutout_w.png", dpi = .001)`
-date: "<br>emLab Study Club<br>January 9, 2024"
 output:
   xaringan::moon_reader:
     css: xaringan-themer.css
