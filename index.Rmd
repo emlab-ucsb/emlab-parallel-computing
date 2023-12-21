@@ -1,10 +1,11 @@
 ---
-title: "A GENTLE INTRODUCTION TO PARALLEL PROCESSING IN R"
-author: "Danielle Ferraro"
-date: "<br>R-Ladies Santa Barbara<br>May 26, 2021"
+title: "A Gentle Introduction to Parallel Computing for emLab"
+author: Danielle Ferraro and Gavin McDonald <br>`r knitr::include_graphics("img/emlab_logo_cutout_w.png", dpi = .001)`
+date: "<br>emLab Study Club<br>January 9, 2024"
 output:
   xaringan::moon_reader:
     css: xaringan-themer.css
+    seal: FALSE
   nature:
     countIncrementalSlides: FALSE
     ratio: 16:9
@@ -13,13 +14,18 @@ output:
 ```{r setup, include = FALSE, warning = FALSE}
 # Load xaringan theme
 library(xaringanthemer)
+
 style_mono_accent(
-  header_font_google = google_font("Text Me One"),
+  header_font_google = google_font("Roboto Slab"),
   text_font_google   = google_font("Glacial Indifference", "300", "300i"),
   code_font_google   = google_font("Fira Mono"),
-  base_color = "#003E54",
-  white_color = "#93C6C2",
-  background_color = "#FFFFFF",
+  base_color = "#205B96",
+  white_color = "white",
+  text_bold_color = "#EBBF52",
+  background_color = "white",
+  link_color = "#769D7A",
+  text_slide_number_color = "#9CBEBE",
+  inverse_background_color = "#769D7A",
   header_font_weight = 400,
   header_h1_font_size = "2.25rem",
   header_h2_font_size = "1.75rem",
@@ -31,41 +37,55 @@ style_mono_accent(
 library(tidyverse)
 ```
 
-# **About me**
+class: inverse, center, middle
 
-Project Researcher at the National Center for Ecological Analysis and Synthesis (NCEAS) and the Environmental Market Solutions Lab (emLab), UC Santa Barbara
+<br>
+# A Gentle Introduction to Parallel Computing for emLab
+<br>
+### Danielle Ferraro and Gavin McDonald 
+<br>
 
-`r icons::fontawesome("envelope", style = "solid")` [dferraro@ucsb.edu](mailto:dferraro@ucsb.edu)
-`r icons::fontawesome("twitter", style = "brands")` [@dm_ferraro](https://twitter.com/dm_ferraro)
+```{r, out.width = "20%", echo = FALSE, fig.align = "center"}
+knitr::include_graphics("img/emlab_logo_cutout_w.png")
+```
+
+### emLab Study Club<br>9 Jan 2024
+---
+class:top
+
+# Overview
+
+.pull-left[
+#### Presentation
+* [What is parallel processing?](#what-is)
+* [When to use it](#when-to)
+* [When *not* to use it](#when-not)
+* [Caveats and things to keep in mind](#caveats)
+* [R packages for parallelization](#r-packages)
+  - `furrr`
+
+]
+
+.pull-right[
+
+#### Demo
+* Accessing a server (quebracho)
+* Parallelizing R code with `furrr` 
+* Using `htop` to observe core/memory usage
+* Parallel computing within `tidymodels` and `targets`
+
+]
+--
+
+.center[
+`r icons::fontawesome("github", style = "brands")`<br>
+These slides are available at:<br> [ https://emlab-ucsb.github.io/emlab-parallel-computing]( https://emlab-ucsb.github.io/emlab-parallel-computing)<br><br>
+GitHub repo is available at:<br> [https://github.com/emlab-ucsb/emlab-parallel-computing](https://github.com/emlab-ucsb/emlab-parallel-computing)
+]
 
 ---
 
-# **About you**
-
-<!-- 
-Zoom poll: 
-Q1. Is this your first R-Ladies SB workshop?
-- I've attended R-Ladies SB meetups before
-- I've been to other R-Ladies meetups, but not SB
-- This is my first time!
-Q2. What is your experience with R?
-- Beginner
-- Intermediate
-- Advanced
-Q3. What is your experience with parallel computing?
-- I don't know what it is
-- I know what it is, but don't currently use it
-- I sometimes parallelize my code
-- I could basically teach this workshop
-Q4. What operating system do you use most frequently with R?
-- Mac
-- Windows
-- Linux
--->
-
----
-
-# **Disclaimer**
+# Disclaimer
 
 .center[
 ```{r echo = FALSE, out.width = '80%'}
@@ -75,9 +95,9 @@ knitr::include_graphics("img/googling.png")
 
 ---
 
-# **Recommended resources**
+# Recommended resources
 
-Resources I used for this workshop:
+Resources we used:
 
 - [Parallel Computing in R, James Henderson, University of Michigan ](https://jbhender.github.io/Stats506/F20/Parallel_Computing_R.html)
 - [Introduction to Parallel Computing Tutorial, Lawrence Livermore National Laboratory](https://hpc.llnl.gov/training/tutorials/introduction-parallel-computing-tutorial)
@@ -86,52 +106,7 @@ Resources I used for this workshop:
 Other helpful reference material:
 
 - [CRAN Task View: High-Performance and Parallel Computing with R](https://CRAN.R-project.org/view=HighPerformanceComputing)
-- [`foreach` package](https://github.com/RevolutionAnalytics/foreach)
-- [`future` package](https://github.com/HenrikBengtsson/future)
-- [`furrr` package](https://github.com/DavisVaughan/furrr)
-- [`future.apply` package](https://github.com/HenrikBengtsson/future.apply)
----
-class: center, middle, inverse
-# Overview
 
----
-
-# **Overview**
-
-1. [What is parallel processing?](#what-is)
-
---
-
-2. [When to use it](#when-to)
-
---
-
-3. [When *not* to use it](#when-not)
-
---
-
-4. [R packages for parallelization](#r-packages)
-  - [`parallel`](#parallel)
-  - [`foreach`](#foreach)
-  - [`furrr`](#furrr)
-  - [`future.apply`](#futureapply)
-  
---
-
-5. [Caveats and things to keep in mind](#caveats)
-
---
-
-6. [Sample code walkthrough](#samplecode)
-
---
-
-.center[
-`r icons::fontawesome("github", style = "brands")`<br>
-These slides are available at:<br> [https://danielleferraro.github.io/rladies-sb-parallel/](https://danielleferraro.github.io/rladies-sb-parallel/)<br><br>
-GitHub repo with sample code is available at:<br> [github.com/danielleferraro/rladies-sb-parallel](https://github.com/danielleferraro/rladies-sb-parallel)
-]
-  
 ---
 
 class: center, middle, inverse
@@ -140,7 +115,7 @@ name: what-is
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 --
 
@@ -148,7 +123,7 @@ A method where a process is broken up into smaller parts that can then be carrie
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 --
 
@@ -164,7 +139,7 @@ knitr::include_graphics("img/serial1.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Traditionally, software is written for **serial processing**
 
@@ -176,7 +151,7 @@ knitr::include_graphics("img/serial2.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Traditionally, software is written for **serial processing**
 
@@ -188,7 +163,7 @@ knitr::include_graphics("img/serial3.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Traditionally, software is written for **serial processing**
 
@@ -200,7 +175,7 @@ knitr::include_graphics("img/serial4.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Running tasks **in parallel** enables us to use multiple computing resources simultaneously to solve a computational problem  
 
@@ -214,7 +189,7 @@ knitr::include_graphics("img/serial1.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Running tasks **in parallel** enables us to use multiple computing resources simultaneously to solve a computational problem  
 
@@ -227,7 +202,7 @@ knitr::include_graphics("img/parallel1.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Running tasks **in parallel** enables us to use multiple computing resources simultaneously to solve a computational problem  
 
@@ -239,7 +214,7 @@ knitr::include_graphics("img/parallel2.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Running tasks **in parallel** enables us to use multiple computing resources simultaneously to solve a computational problem  
 
@@ -251,7 +226,7 @@ knitr::include_graphics("img/parallel3.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 Running tasks **in parallel** enables us to use multiple computing resources simultaneously to solve a computational problem  
 
@@ -263,7 +238,7 @@ knitr::include_graphics("img/parallel4.png")
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 ### Benefit: task speedup
 
@@ -271,7 +246,7 @@ More of your computer's resources used -> Multiple computations run at the same 
 
 ---
 
-# **What is parallel processing?**
+# What is parallel processing?
 
 --
 
@@ -289,8 +264,6 @@ More of your computer's resources used -> Multiple computations run at the same 
 
 - A **cluster** typically refers to a network of computers that work together (each with many cores), but it can also mean the collection of cores on your personal computer
   
-  - In this workshop, we'll be focusing on the latter
-
 ---
 
 class: center, middle, inverse
@@ -299,14 +272,15 @@ name: when-to
 
 ---
 
-# **When to use parallel processing**
+# When to use parallel processing
 
-When tasks are **embarassingly parallel**, i.e. if your analysis could easily be separated into many identical but separate tasks that do not rely on one another
+When tasks are **pleasingly parallel**, i.e. if your analysis could easily be separated into many identical but separate tasks that do not rely on one another
 
 Examples:
 
 - Bootstrapping
 - Monte Carlo simulations
+- Machine learning (e.g., cross-validation, model selection, hyperparameter tuning, models like random forests that can run in parallel)
 - Computations by group
 
 --
@@ -326,19 +300,20 @@ where each step depends on the one before it, so they cannot be completed at the
 
 ---
 
-# **When to use parallel processing**
+# When to use parallel processing
 
-When tasks are **embarassingly parallel**, i.e. if your analysis could easily be separated into many identical but separate tasks that do not rely on one another
+When tasks are **pleasingly parallel**, i.e. if your analysis could easily be separated into many identical but separate tasks that do not rely on one another
 
 Examples:
 
 - Bootstrapping
 - Monte Carlo simulations
+- Machine learning (e.g., cross-validation, model selection, hyperparameter tuning, models like random forests that can run in parallel)
 - Computations by group
 
 --
 
-**AND**
+**AND / OR**
 
 When tasks are computationally intensive and take time to complete
 
@@ -350,7 +325,7 @@ name: when-not
 
 ---
 
-# **When *not* to use parallel processing**
+# When *not* to use parallel processing
 
 .center[
 ```{r echo = FALSE, out.width = '60%'}
@@ -366,7 +341,7 @@ knitr::include_graphics("img/traffic_jam.jpg")
 
 ---
 
-# **When *not* to use parallel processing**
+# When *not* to use parallel processing
  
 .center[
 ### It is not magic! 
@@ -382,7 +357,7 @@ knitr::include_graphics("img/distracted_boyfriend.png")
 
 ---
 
-# **When *not* to use parallel processing** 
+# When *not* to use parallel processing 
 
 ### As a first step, always **profile** your code.
 
@@ -406,7 +381,7 @@ knitr::include_graphics("img/distracted_boyfriend.png")
 
 ---
 
-# **When *not* to use parallel processing** 
+# When *not* to use parallel processing 
 
 ### It may not be the right tool for the job.
 
@@ -426,7 +401,7 @@ knitr::include_graphics("img/computer_on_fire.png")
 
 ---
 
-# **When *not* to use parallel processing**
+# When *not* to use parallel processing
 
 ### It may not be efficient.
 
@@ -458,7 +433,7 @@ name: caveats
 
 ---
 
-# **Caveats and things to keep in mind**
+# Caveats and things to keep in mind
 
 - Implementation varies across operating systems
 
@@ -494,9 +469,27 @@ name: r-packages
 
 Many different R packages for parallel processing exist, but they leverage either `parallel` or `future` as a *backend*, or both (and let us decide which to use).
 
---
+---
 
-Today, we will cover:
+# R packages for parallelization
+
+Today's demo will use `furrr` (which uses `future`). 
+
+`furrr` is the parallel version of `purrr` and contains near drop-in replacements for `purrr`'s family of `map()` and `walk()` functions.
+
+```{r echo = FALSE}
+data.frame(purrr = c("`map()`", "`map_df()`", "`map_chr()`", "`map2()`", "`pmap()`", "`walk()`", "`walk2()`"),
+           furrr = c("`future_map()`", "`future_map_dfr()`", "`future_map_chr()`", "`future_map2()`", "`future_pmap()`", "`future_walk()`", "`future_walk2()`")) |> 
+  knitr::kable()
+```
+
+.center[...and so on and so forth]
+
+---
+
+# R packages for parallelization
+
+See slides at the end of this presentation for brief comparisons of serial vs. parallel code within the following R packages:
 
 - `parallel`
 - `dopar` (can use `parallel` or `future`)
@@ -506,14 +499,21 @@ Today, we will cover:
 ...but there are many others
 
 - Check out [multidplyr](https://github.com/tidyverse/multidplyr)
-- See the [CRAN Task View: High-Performance and Parallel Computing with R](https://CRAN.R-project.org/view=HighPerformanceComputing) for an extensive list
+- See the [CRAN Task View: High-Performance and Parallel Computing with R](https://CRAN.R-project.org/view=HighPerformanceComputing) for a very extensive list
+
+
+# Demo time! 
+---
+
+class: center, middle, inverse
+# Appendix <br> 
+### Serial vs. parallel code in common R packages for parallel computation
 
 ---
 
-name: parallel
-# **The `parallel` package**
+# The [`parallel`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/doc/parallel.pdf) package
 
-**Purpose:** parallel versions of apply functions. Note that it is operating system dependent.
+**Purpose:** parallel versions of apply functions. This package is a part of core R and thus you do not need to install it. Note that it is operating system dependent.
 
 Unix/Linux (forking): 
 ```{r eval = FALSE}
@@ -544,8 +544,7 @@ parLapply(cluster, 1:10, sqrt)
 
 ---
 
-name: foreach
-# **The `foreach` package**
+# The [`foreach`](https://github.com/RevolutionAnalytics/foreach) package
 
 **Purpose:** allows you to use `for` loops in parallel and choose your backend (e.g. `parallel` vs. `future`)
 
@@ -568,8 +567,7 @@ foreach(i = 1:10) %dopar% {
 
 ---
 
-name: furrr
-# **The `furrr` package**
+# The [`furrr`](https://github.com/DavisVaughan/furrr) package
 
 **Purpose:** parallel versions of `purrr::map()` functions using futures
 
@@ -584,8 +582,7 @@ future_map_dbl(1:10, sqrt)
 
 ---
 
-name: futureapply
-# **The `future.apply` package**
+# The [`future.apply`](https://github.com/HenrikBengtsson/future.apply) package
 
 **Purpose:** parallel versions of `apply()` functions using futures
 
@@ -606,6 +603,6 @@ class: center, middle
 
 # Sample code
 
-To follow along during the live coding session: [sample_code.Rmd](https://github.com/danielleferraro/rladies-sb-parallel/blob/main/sample_code/sample_code.Rmd)<br>
-If you'd like to write the code along with me: [sample_code_blank.Rmd](https://github.com/danielleferraro/rladies-sb-parallel/blob/main/sample_code/sample_code_blank.Rmd)
+For short examples of how to use these R packages for parallel computing, see [sample_code.Rmd](https://github.com/danielleferraro/rladies-sb-parallel/blob/main/sample_code/sample_code.Rmd)<br>
+
 

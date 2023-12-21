@@ -15,11 +15,11 @@
  *    - xaringan wiki: https://github.com/yihui/xaringan/wiki
  *    - remarkjs wiki: https://github.com/gnab/remark/wiki
  *
- *  Version: 0.3.4
+ *  Version: 0.4.2
  *
  * ------------------------------------------------------- */
 @import url(https://fonts.googleapis.com/css?family=Glacial+Indifference:300,300i&display=swap);
-@import url(https://fonts.googleapis.com/css?family=Text+Me+One&display=swap);
+@import url(https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap);
 @import url(https://fonts.googleapis.com/css?family=Fira+Mono&display=swap);
 
 
@@ -29,7 +29,7 @@
   --text-font-is-google: 1;
   --text-font-family-fallback: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, Ubuntu, roboto, noto, segoe ui, arial;
   --text-font-base: sans-serif;
-  --header-font-family: 'Text Me One';
+  --header-font-family: 'Roboto Slab';
   --header-font-is-google: 1;
   --header-font-family-fallback: Georgia, serif;
   --code-font-family: 'Fira Mono';
@@ -44,21 +44,21 @@
 
   /* Colors */
   --text-color: #272822;
-  --header-color: #003E54;
-  --background-color: #FFFFFF;
-  --link-color: #003E54;
-  --text-bold-color: #003E54;
+  --header-color: #205B96;
+  --background-color: white;
+  --link-color: #769D7A;
+  --text-bold-color: #EBBF52;
   --code-highlight-color: rgba(255,255,0,0.5);
-  --inverse-text-color: #93C6C2;
-  --inverse-background-color: #003E54;
-  --inverse-header-color: #93C6C2;
-  --inverse-link-color: #003E54;
-  --title-slide-background-color: #003E54;
-  --title-slide-text-color: #93C6C2;
-  --header-background-color: #003E54;
-  --header-background-text-color: #FFFFFF;
-  --base: #003E54;
-  --white: #93C6C2;
+  --inverse-text-color: white;
+  --inverse-background-color: #769D7A;
+  --inverse-header-color: white;
+  --inverse-link-color: #769D7A;
+  --title-slide-background-color: #769D7A;
+  --title-slide-text-color: white;
+  --header-background-color: #205B96;
+  --header-background-text-color: white;
+  --base: #205B96;
+  --white: white;
   --black: #272822;
 }
 
@@ -100,14 +100,17 @@ h1, h2, h3 {
 }
 .remark-inline-code {
   font-size: var(--code-inline-font-size);
-  color: #003E54;
+  color: #205B96;
 }
 .remark-slide-number {
-  color: #003E54;
+  color: #9CBEBE;
   opacity: 1;
-  font-size: 0.9em;
+  font-size: 0.9rem;
 }
-strong { color: var(--text-bold-color); }
+strong {
+  font-weight: bold;
+  color: var(--text-bold-color);
+}
 a, a > code {
   color: var(--link-color);
   text-decoration: none;
@@ -148,10 +151,10 @@ a, a > code {
   float: left;
 }
 .left-column h2, .left-column h3 {
-  color: #003E5499;
+  color: #205B9699;
 }
 .left-column h2:last-of-type, .left-column h3:last-child {
-  color: #003E54;
+  color: #205B96;
 }
 .right-column {
   width: 75%;
@@ -173,7 +176,7 @@ img, video, iframe {
   max-width: 100%;
 }
 blockquote {
-  border-left: solid 5px #003E5480;
+  border-left: solid 5px #205B9680;
   padding-left: 1em;
 }
 .remark-slide table {
@@ -187,8 +190,10 @@ blockquote {
 th, td {
   padding: 5px;
 }
-.remark-slide thead, .remark-slide tfoot, .remark-slide tr:nth-child(even) {
-  background: #CCD8DC;
+.remark-slide table:not(.table-unshaded) thead,
+.remark-slide table:not(.table-unshaded) tfoot,
+.remark-slide table:not(.table-unshaded) tr:nth-child(even) {
+  background: #D2DEEA;
 }
 table.dataTable tbody {
   background-color: var(--background-color);
@@ -198,7 +203,7 @@ table.dataTable.display tbody tr.odd {
   background-color: var(--background-color);
 }
 table.dataTable.display tbody tr.even {
-  background-color: #CCD8DC;
+  background-color: #D2DEEA;
 }
 table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.5);
@@ -208,6 +213,36 @@ table.dataTable.hover tbody tr:hover, table.dataTable.display tbody tr:hover {
 }
 .dataTables_wrapper .dataTables_paginate .paginate_button {
   color: var(--text-color) !important;
+}
+
+/* Horizontal alignment of code blocks */
+.remark-slide-content.left pre,
+.remark-slide-content.center pre,
+.remark-slide-content.right pre {
+  text-align: start;
+  width: max-content;
+  max-width: 100%;
+}
+.remark-slide-content.left pre,
+.remark-slide-content.right pre {
+  min-width: 50%;
+  min-width: min(40ch, 100%);
+}
+.remark-slide-content.center pre {
+  min-width: 66%;
+  min-width: min(50ch, 100%);
+}
+.remark-slide-content.left pre {
+  margin-left: unset;
+  margin-right: auto;
+}
+.remark-slide-content.center pre {
+  margin-left: auto;
+  margin-right: auto;
+}
+.remark-slide-content.right pre {
+  margin-left: auto;
+  margin-right: unset;
 }
 
 /* Slide Header Background for h1 elements */
