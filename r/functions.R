@@ -198,6 +198,9 @@ run_ml_models <- function(dataset,
   
 }
 
+# Load penguins dataset, which we'll use in ML modeling example
+# data(penguins, package = "modeldata")
+
 # Let's test the function and time it - first running RF sequentially and cross-validation sequentially 
 # tictoc::tic()
 # run_ml_models(penguins,
