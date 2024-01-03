@@ -53,26 +53,20 @@ run_ml_models <- function(dataset,
   
   # Initialize workers for cross-validation parallel processing
   # This will run each of our CV folds on a different worker
-  # Need to register backend for tune::tune_grid to pick it up
-  if(number_of_workers_for_cv > 1) doFuture::registerDoFuture()
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
   # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
   if(number_of_workers_for_cv > 1) future::plan(future::cluster,
                                                 workers = parallel::makeForkCluster(number_of_workers_for_cv))
   
   # Run cross-validation using our CV splits
-  # Over a grid size of 10 hyperparameter combinations
+  # Over a grid size of 25 hyperparameter combinations
   cv_results <-
     workflow |>
     tune::tune_grid(
       resamples = train_cv_splits,
       metrics = performance_metrics,
-      grid = 10,
-      control = tune::control_grid(verbose = TRUE,
-                                   # Allow this to run in parallel if number_of_workers_for_cv > 1 
-                                   # Otherwise, don't run this in parallel
-                                   allow_par = number_of_workers_for_cv > 1,
-                                   parallel_over = "resamples"))
+      grid = 25,
+      control = tune::control_grid(verbose = TRUE))
   
   # Select best hyperparameter set
   best_hyperparameters <- cv_results |>
