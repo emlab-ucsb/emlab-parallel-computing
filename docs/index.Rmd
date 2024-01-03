@@ -66,10 +66,11 @@ class:top
 .pull-right[
 
 #### Demo
-* Accessing a server (quebracho)
+* Accessing R Studio Server (quebracho)
 * Parallelizing R code with `furrr` 
 * Using `htop` to observe core/memory usage
-* Parallel computing within `tidymodels` and `targets`
+* Parallel computing within `targets`
+* Parallel computing for machine learning using `tidymodels`
 
 ]
 --
