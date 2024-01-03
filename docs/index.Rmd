@@ -100,6 +100,7 @@ Resources we used:
 - [Parallel Computing in R, James Henderson, University of Michigan ](https://jbhender.github.io/Stats506/F20/Parallel_Computing_R.html)
 - [Introduction to Parallel Computing Tutorial, Lawrence Livermore National Laboratory](https://hpc.llnl.gov/training/tutorials/introduction-parallel-computing-tutorial)
 - [Parallel programming lecture, Grant McDermott, University of Oregon](https://raw.githack.com/uo-ec607/lectures/master/12-parallel/12-parallel.html)
+- [tidymodels and tune: Optimizations and parallel processing](https://tune.tidymodels.org/articles/extras/optimizations.html)
 
 Other helpful reference material:
 
