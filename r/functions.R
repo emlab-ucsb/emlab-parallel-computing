@@ -18,8 +18,8 @@ long_function_sequential <- function(how_many_seconds_vector){
   
   how_many_seconds_vector |>
     purrr::map(long_function, 
-                   # Include a progress bar
-                   .progress = TRUE)
+               # Include a progress bar
+               .progress = TRUE)
   
 }
 
@@ -28,10 +28,47 @@ long_function_sequential <- function(how_many_seconds_vector){
 # long_function_sequential(rep(2,5))
 # tictoc::toc()
 
-# Create a wrapper for long_function that runs in parallel over a vector of seconds
-# The number of cores is set by the user
-long_function_parallel <- function(how_many_seconds_vector,
-                                   number_of_workers = 1){
+# Create a version for long_function that runs in parallel over a vector of seconds
+long_function_parallel <- function(how_many_seconds_vector){
+  
+  # Run the function in parallel using furrr::future_map
+  how_many_seconds_vector |>
+    furrr::future_map(long_function, 
+                      # Include a progress bar
+                      .progress = TRUE)
+  
+}
+
+# Set number of workers for parallel processing
+# One way to do this would be to use all available cores on the machine
+# num_workers <- future::availableCores()
+# num_workers
+
+# If working locally on your personal computer, you may wish to leave 1 core free for other tasks
+# num_workers <- future::availableCores(omit = 1)
+# num_workers
+
+# Alternatively, you can set the number of workers manually
+# number_workers <- 5
+
+# Initialize workers for parallel processing using future::plan
+# Make fork cluster, which should work on Macs, Linux, and GRIT servers
+# An alternative is to use future::plan(future::multisession, workers = number_of_workers)
+# future::plan(future::cluster,
+#              workers = parallel::makeForkCluster(number_workers))
+
+# # Let's test the function and time it
+# tictoc::tic()
+# long_function_parallel(rep(2,5))
+# tictoc::toc()
+# 
+# # Always shut down the workers when you're done
+# future::plan(future::sequential)
+
+# Create a wrapper function for long_function_parallel that allows us to specify the number of workers,
+# and automatically starts and shuts down the workers
+long_function_parallel_wrapper <- function(how_many_seconds_vector,
+                                           number_of_workers = 1){
   
   # Initialize workers for parallel processing
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
@@ -41,9 +78,7 @@ long_function_parallel <- function(how_many_seconds_vector,
   
   # Run the function in parallel
   result <- how_many_seconds_vector |>
-    furrr::future_map(long_function, 
-                          # Include a progress bar
-                          .progress = TRUE)
+    long_function_parallel()
   
   # Close the workers
   future::plan(future::sequential)
@@ -53,9 +88,11 @@ long_function_parallel <- function(how_many_seconds_vector,
   
 }
 
-# # Let's test the function and time it
+# Let's test the function and time it
+# Since it takes time to initialize and shut down the workers, we can see this takes a little longer to run
 # tictoc::tic()
-# long_function_parallel(rep(2,5), number_of_workers = 5)
+# long_function_parallel_wrapper(rep(2,5),
+#                                number_of_workers = number_workers)
 # tictoc::toc()
 
 # Create a function to train and test machine learning model
@@ -115,7 +152,7 @@ run_ml_models <- function(dataset,
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
   # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
   if(number_of_workers_for_cv > 1) future::plan(future::cluster,
-                                         workers = parallel::makeForkCluster(number_of_workers_for_cv))
+                                                workers = parallel::makeForkCluster(number_of_workers_for_cv))
   
   # Run cross-validation using our CV splits
   # Over a grid size of 10 hyperparameter combinations
@@ -162,27 +199,27 @@ run_ml_models <- function(dataset,
 }
 
 # Let's test the function and time it - first running RF sequentially and cross-validation sequentially 
- # tictoc::tic()
- # run_ml_models(penguins,
- #               number_of_workers_for_cv = 1,
- #               number_of_workers_for_rf = 1)
- # tictoc::toc()
- 
- # Let's test the function and time it - next running RF in parallel and cross-validation sequentially
- # tictoc::tic()
- # run_ml_models(penguins,
- #               number_of_workers_for_cv = 1,
- #               number_of_workers_for_rf = 10)
- # tictoc::toc()
+# tictoc::tic()
+# run_ml_models(penguins,
+#               number_of_workers_for_cv = 1,
+#               number_of_workers_for_rf = 1)
+# tictoc::toc()
 
- # Let's test the function and time it - now running RF sequentially and cross-validation in parallel
- # This is much faster because cross-validation is the more outer loop than the internal random forest model, 
- # and is the longest running operation
- # tictoc::tic()
- # run_ml_models(penguins, 
- #               number_of_workers_for_cv = 10,
- #               number_of_workers_for_rf = 1)
- # tictoc::toc()
+# Let's test the function and time it - next running RF in parallel and cross-validation sequentially
+# tictoc::tic()
+# run_ml_models(penguins,
+#               number_of_workers_for_cv = 1,
+#               number_of_workers_for_rf = 10)
+# tictoc::toc()
+
+# Let's test the function and time it - now running RF sequentially and cross-validation in parallel
+# This is much faster because cross-validation is the more outer loop than the internal random forest model, 
+# and is the longest running operation
+# tictoc::tic()
+# run_ml_models(penguins, 
+#               number_of_workers_for_cv = 10,
+#               number_of_workers_for_rf = 1)
+# tictoc::toc()
 
 # Let's create a wrapper function that runs the ML function above by group
 run_ml_models_by_group <- function(dataset,
@@ -201,7 +238,7 @@ run_ml_models_by_group <- function(dataset,
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
   # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
   if(number_of_workers_for_groups > 1) future::plan(future::cluster,
-                                                workers = parallel::makeForkCluster(number_of_workers_for_groups))
+                                                    workers = parallel::makeForkCluster(number_of_workers_for_groups))
   
   # Take our dataset, group by group_name, then use that to nest so that each row corresponds to the data from each group
   # This is a nice way to keep everything organized, and ensure model results correspond to group names
@@ -217,13 +254,13 @@ run_ml_models_by_group <- function(dataset,
     dplyr::ungroup() |>
     # Use furrr to run the run_ml_models function in parallel across each row (e.g., run it in parallel across groups)
     dplyr::mutate(model_performance_results = furrr::future_map(data, 
-                                                      ~run_ml_models(.,
-                                                                      number_of_workers_for_cv = number_of_workers_for_cv,
-                                                                      number_of_workers_for_rf = number_of_workers_for_rf),
-                                                  # Set this option to ensure proper random seeds each time it's run, even in parallel
-                                                  .options = furrr::furrr_options(seed = 101),
-                                                  # Include progress bar
-                                                  .progress = TRUE)) |>
+                                                                ~run_ml_models(.,
+                                                                               number_of_workers_for_cv = number_of_workers_for_cv,
+                                                                               number_of_workers_for_rf = number_of_workers_for_rf),
+                                                                # Set this option to ensure proper random seeds each time it's run, even in parallel
+                                                                .options = furrr::furrr_options(seed = 101),
+                                                                # Include progress bar
+                                                                .progress = TRUE)) |>
     # We no longer need the data column
     dplyr::select(-data) |>
     # Unnest the model_performance_results column to get a regular looking tibble

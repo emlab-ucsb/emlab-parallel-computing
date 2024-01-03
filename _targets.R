@@ -6,21 +6,15 @@ library(targets)
 # Load penguins dataset, which we'll use in ML modeling example
 data(penguins, package = "modeldata")
 
-# Set number of works to use for parallel processing
-# If doing this on your personal machine, you can use something like this:
-#num_workers <- future::availableCores()
-
-# If using the emLab server, you can use something like this:
-num_workers <- 10
 
 # Set target options:
 tar_option_set(
   # For distributed computing in tar_make(), supply a {crew} controller
   # as discussed at https://books.ropensci.org/targets/crew.html.
   # Choose a controller that suits your needs. For example, the following
-  # sets a controller with 2 workers which will run as local R processes:
+  # sets a controller with workers which will run as local R processes:
   #
-  #    controller = crew::crew_controller_local(workers = num_workers)
+  #    controller = crew::crew_controller_local(workers = 2)
   #
 )
 
@@ -44,10 +38,10 @@ list(
     name = results_sequential_2,
     command = long_function_sequential(values_to_run)
   )#,
-  # # # Now let's run long_function in parallel, using values_to_run
+  # # Now let's run long_function in parallel, using values_to_run
   # tar_target(
   #   name = results_parallel,
-  #   command = long_function_parallel(values_to_run,
-  #                                    number_of_workers = num_workers)
+  #   command = long_function_parallel_wrapper(values_to_run,
+  #                                    number_of_workers = 5)
   # )
 )
