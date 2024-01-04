@@ -68,7 +68,9 @@ run_ml_models <- function(dataset,
       resamples = train_cv_splits,
       metrics = performance_metrics,
       grid = 25,
-      control = tune::control_grid(verbose = TRUE))
+      control = tune::control_grid(verbose = TRUE,
+                                   # Only allow parallelization across folds if doing CV in parallel
+                                   allow_par = number_of_workers_for_cv > 1))
   
   # Select best hyperparameter set
   best_hyperparameters <- cv_results |>
