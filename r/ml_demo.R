@@ -53,6 +53,8 @@ run_ml_models <- function(dataset,
   
   # Initialize workers for cross-validation parallel processing
   # This will run each of our CV folds on a different worker
+  # Need to register backend for tune::tune_grid to pick it up
+  if(number_of_workers_for_cv > 1) doFuture::registerDoFuture()
   # Make fork cluster, which should work on Macs, Linux, and GRIT servers
   # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
   if(number_of_workers_for_cv > 1) future::plan(future::cluster,
