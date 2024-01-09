@@ -1,6 +1,9 @@
 # Load penguins dataset, which we'll use in ML modeling example
 data(penguins, package = "modeldata")
 
+# Inspect the dataset
+penguins
+
 # Create a function to train and test machine learning model
 # This will use the penguins dataset to build a model that predicts penguin body weight
 run_ml_models <- function(dataset,
