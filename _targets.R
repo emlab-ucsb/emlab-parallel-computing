@@ -10,7 +10,7 @@ tar_option_set(
   # Choose a controller that suits your needs. For example, the following
   # sets a controller with workers which will run as local R processes:
   #
-  #    controller = crew::crew_controller_local(workers = 2)
+      controller = crew::crew_controller_local(workers = 3)
   #
 )
 
@@ -33,11 +33,11 @@ list(
   tar_target(
     name = results_sequential_2,
     command = long_function_sequential(values_to_run)
-  )#,
-  # # Now let's run long_function in parallel, using values_to_run
-  # tar_target(
-  #   name = results_parallel,
-  #   command = long_function_parallel_wrapper(values_to_run,
-  #                                    number_of_workers = 5)
-  # )
+  ),
+  # Now let's run long_function in parallel, using values_to_run
+  tar_target(
+    name = results_parallel,
+    command = long_function_parallel(values_to_run,
+                                     number_of_workers = 5)
+  )
 )
