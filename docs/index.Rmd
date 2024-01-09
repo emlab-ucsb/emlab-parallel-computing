@@ -440,14 +440,26 @@ name: caveats
   - **Forking** is faster, but doesn't work on Windows and may cause problems in IDEs like RStudio
   - **Sockets** are a bit slower, but work across operating systems and in IDEs
   
-  
 --
   
-- Debugging can be tricky
+- Choose an **optimal number of cores** for the task at hand (consider the cost of overhead vs. the speedup, the number of cores available, the number of cores needed for other tasks, if you are on a shared system, etc)
+
+  - On a personal machine: `future::availableCores(omit = 1)`
+  - On a shared system, like the emLab server: best practice TBD!
+
+--
+  
+- **Debugging** can be tricky, so try to get your code running sequentially first
 
 --
 
-- Be careful when generating random numbers across processes (R has some [strategies](https://www.r-bloggers.com/2020/09/future-1-19-1-making-sure-proper-random-numbers-are-produced-in-parallel-processing/) to deal with this)
+- Be careful when generating **random numbers** across processes (R has some [strategies](https://www.r-bloggers.com/2020/09/future-1-19-1-making-sure-proper-random-numbers-are-produced-in-parallel-processing/) to deal with this)
+
+--
+
+- When finished, [explicitly close the parallel workers](https://cran.r-project.org/web/packages/future/vignettes/future-7-for-package-developers.html) and return to the default sequential processing
+  - `future::plan("sequential")`
+  - `parallel::stopCluster(cl)`
 
 ---
 
