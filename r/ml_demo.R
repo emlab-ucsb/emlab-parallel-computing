@@ -117,7 +117,7 @@ run_ml_models(penguins,
 tictoc::toc()
 
 # Let's test the function and time it - now running RF sequentially and cross-validation in parallel
-# This is faster because cross-validation is the more outer loop than the internal random forest model, 
+# This will typically be faster because cross-validation is the more outer loop than the internal random forest model, 
 # and is the longest running operation
 tictoc::tic()
 run_ml_models(penguins,
@@ -125,72 +125,61 @@ run_ml_models(penguins,
               number_of_workers_for_cv = 10)
 tictoc::toc()
 
-# Let's create a wrapper function that runs the ML function above by group
-run_ml_models_by_group <- function(dataset,
-                                   group_name,
-                                   # Random forest can internally run in parallel
-                                   # How many parallel workers should random forest use?
-                                   number_of_workers_for_rf = 1,
-                                   # This specifies the number of workers across which we want to do cross-validation
-                                   # I only include this for demonstration purposes
-                                   # To maximize efficiencies and minimize overhead loss,
-                                   # We typically want to parallelize the longest running operation (e.g., the outermost loop)
-                                   number_of_workers_for_cv = 1,
-                                   # This specifies the number of workers across which we want to do group-wise model building
-                                   number_of_workers_for_groups = 1){
-  
-  # Make fork cluster, which should work on Macs, Linux, and GRIT servers
-  # An alternative is to use future::plan(future::multisession, workers = number_of_workers)
-  if(number_of_workers_for_groups > 1) future::plan(future::cluster,
-                                                    workers = parallel::makeForkCluster(number_of_workers_for_groups))
-  
-  # Take our dataset, group by group_name, then use that to nest so that each row corresponds to the data from each group
-  # This is a nice way to keep everything organized, and ensure model results correspond to group names
-  # As an example to see what this looks like before building the models, you can try the following
-  # penguins |> 
-  #   dplyr::group_by(species) |> 
-  #   tidyr::nest() |> 
-  #   dplyr::ungroup()
-  
-  results <- dataset |>
-    dplyr::group_by(across(all_of(group_name))) |>
-    tidyr::nest() |>
-    dplyr::ungroup() |>
-    # Use furrr to run the run_ml_models function in parallel across each row (e.g., run it in parallel across groups)
-    dplyr::mutate(model_performance_results = furrr::future_map(data, 
-                                                                ~run_ml_models(.,
-                                                                               number_of_workers_for_cv = number_of_workers_for_cv,
-                                                                               number_of_workers_for_rf = number_of_workers_for_rf),
-                                                                # Set this option to ensure proper random seeds each time it's run, even in parallel
-                                                                .options = furrr::furrr_options(seed = 101),
-                                                                # Include progress bar
-                                                                .progress = TRUE)) |>
-    # We no longer need the data column
-    dplyr::select(-data) |>
-    # Unnest the model_performance_results column to get a regular looking tibble
-    # Where each row is a group and its corresponding model performance
-    tidyr::unnest(model_performance_results)
-  
-  # Close the workers, if necessary
-  if(number_of_workers_for_groups > 1) future::plan(future::sequential)
-  
-  results
-}
 
-# Run this sequentially
+# Now let's train separate models for each of the 3 species groups
+# To do this, we will nest our dataset by group, then run run_ml_models for each group,
+# then unnest the results
+# First, we can do this sequentially using purrr::map
+
 tictoc::tic()
-run_ml_models_by_group(penguins,
-                       group_name = "species",
-                       number_of_workers_for_rf = 1,
-                       number_of_workers_for_cv = 1,
-                       number_of_workers_for_groups = 1)
+
+penguins |>
+  dplyr::group_by(species) |>
+  tidyr::nest() |>
+  dplyr::ungroup() |>
+  # Use furrr to run the run_ml_models function in parallel across each row (e.g., run it in parallel across groups)
+  dplyr::mutate(model_performance_results = purrr::map(data, 
+                                                       ~run_ml_models(.,
+                                                                      number_of_workers_for_cv = 1,
+                                                                      number_of_workers_for_rf = 1),
+                                                       # Include progress bar
+                                                       .progress = TRUE)) |>
+  # We no longer need the data column
+  dplyr::select(-data) |>
+  # Unnest the model_performance_results column to get a regular looking tibble
+  # Where each row is a group and its corresponding model performance
+  tidyr::unnest(model_performance_results)
+
 tictoc::toc()
 
-# Do parallelization over groups
+
+# Now use parallelization over groups
+# We have 3 groups, so use 3 workers
+
+future::plan(future::cluster,
+             workers = parallel::makeForkCluster(3))
+
 tictoc::tic()
-run_ml_models_by_group(penguins,
-                       group_name = "species",
-                       number_of_workers_for_rf = 1,
-                       number_of_workers_for_cv = 1,
-                       number_of_workers_for_groups = 3)
+
+penguins |>
+  dplyr::group_by(species) |>
+  tidyr::nest() |>
+  dplyr::ungroup() |>
+  # Use furrr to run the run_ml_models function in parallel across each row (e.g., run it in parallel across groups)
+  dplyr::mutate(model_performance_results = furrr::future_map(data, 
+                                                              ~run_ml_models(.,
+                                                                             number_of_workers_for_cv = 1,
+                                                                             number_of_workers_for_rf = 1),
+                                                              # Set this option to ensure proper random seeds each time it's run, even in parallel
+                                                              .options = furrr::furrr_options(seed = 101),
+                                                              # Include progress bar
+                                                              .progress = TRUE)) |>
+  # We no longer need the data column
+  dplyr::select(-data) |>
+  # Unnest the model_performance_results column to get a regular looking tibble
+  # Where each row is a group and its corresponding model performance
+  tidyr::unnest(model_performance_results)
+
 tictoc::toc()
+
+future::plan(future::sequential)
